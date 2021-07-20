@@ -2,7 +2,10 @@ from lexer_config import Lexer
 from token_config import TokenType
 from parser_config import Parser
 
-a = Lexer('in.txt')
+lxr = Lexer('in.txt')
+prsr = Parser(lxr)
+prsr.prog()
+print(lxr.symbol_table)
 '''
 while True:
     b = a.next_token()

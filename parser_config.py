@@ -28,9 +28,9 @@ class Parser:
     def atr(self):
         ref = self.lookahead.attribute  # it gets the name
         self.match(self.lookahead)  # it matches VAR but todo it has to search in symbol table
-        self.lookahead = self.lexer.next_token
-        self.match(self.lookahead)  # I HOPE it matches EQ
-        self.expr()
+        self.match(self.lookahead)
+        result_expr = self.expr()
+        self.lexer.symbol_table[ref] = result_expr
 
     def expr(self):
         result_expr = self.fact()
@@ -44,22 +44,23 @@ class Parser:
 
     def fact(self):
         result_term = self.term()
-        # self.lookahead = self.lexer.next_token()
+        op_symbol = False
         if (self.lookahead.type == TokenType.Mult
                 or self.lookahead.type == TokenType.Div):
             op_symbol, result_op = self.op()
 
-        if op_symbol and op_symbol == '*':
-            return result_term * result_op
-        else:
-            return result_term / result_op
+        if op_symbol:
+            if op_symbol == '*':
+                return result_term * result_op
+            elif op_symbol == '/':
+                return result_term / result_op
 
     def rest(self):  # TODO to improve this function interpreting results
         if self.lookahead.type != TokenType.Invalid:
             op_symbol = self.lookahead.attribute  # it gets the symbol
             self.match(self.lookahead)
-            result = self.expr()  # todo to make it return somthing
-            return op_symbol, result
+            result_expr = self.expr()  # todo to make it return something
+            return op_symbol, result_expr
         return 'invalid', -1
 
     def stmt(self):
@@ -76,13 +77,18 @@ class Parser:
             self.match(self.lookahead)
             return value
         elif self.lookahead.type == TokenType.Var:
-            content = self.lookahead.attribute  # content = its name
-            self.match(self.lookahead)
-            return content
+            # content = its value in symbol_table
+            try:
+                content = self.lexer.symbol_table[self.lookahead.attribute]
+                self.match(self.lookahead)
+                return content
+            except NameError:
+                print(f'To write a message: {NameError}')
         elif self.lookahead.type == TokenType.Open:
             self.match(self.lookahead)  # it will match OPEN
-            self.expr()
+            result_expr = self.expr()
             self.match(self.lookahead)  # I HOPE it will match CLOSE
+            return result_expr
 
     def op(self):
         op_symbol = self.lookahead.attribute

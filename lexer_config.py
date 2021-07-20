@@ -4,9 +4,9 @@ from token_config import Token, TokenType
 class Lexer:
     def __init__(self, file_in):
         self.position = -1
-        self.symbols = dict()
         source = open(file_in, 'r').readlines()
         self.input = str()
+        self.symbol_table = dict()
         for i in source:
             for j in i:
                 if j != '\n' and j != '\t' and j != ' ':
@@ -53,6 +53,7 @@ class Lexer:
                 if not peek.isalnum():
                     self.position -= 1
                     break
+            self.symbol_table[var] = False
             return Token(TokenType.Var, var)
         elif peek == 'p':
             command = str()
