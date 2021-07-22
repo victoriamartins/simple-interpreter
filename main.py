@@ -4,12 +4,12 @@ from parser_config import Parser
 
 lxr = Lexer('in.txt')
 prsr = Parser(lxr)
+
 prsr.prog()
-print(lxr.symbol_table)
+
+print(prsr.lexer.symbol_table)
 '''
-while True:
-    b = a.next_token()
-    print(f'{b.type}, {b.attribute}')
-    if b.type == TokenType.Invalid:
-        break
+$x = 120 - 2 + 2/5;
+$z = $x * 5;
+print($z);
 '''

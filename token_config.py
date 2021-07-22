@@ -13,7 +13,8 @@ class TokenType(enum.Enum):
     Sub = 8
     Mult = 9
     Div = 10
-    Num = 11
+    Int = 11
+    Float = 12
 
 
 class Token:

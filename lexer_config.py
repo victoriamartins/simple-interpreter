@@ -44,7 +44,9 @@ class Lexer:
                 if not peek.isnumeric() and peek != '.':
                     self.position -= 1
                     break
-            return Token(TokenType.Num, num)
+            if '.' in num:
+                return Token(TokenType.Float, num)
+            return Token(TokenType.Int, num)
         elif peek == '$':
             var = str()
             while True:
@@ -53,7 +55,7 @@ class Lexer:
                 if not peek.isalnum():
                     self.position -= 1
                     break
-            self.symbol_table[var] = False
+            self.symbol_table[var] = 0
             return Token(TokenType.Var, var)
         elif peek == 'p':
             command = str()
