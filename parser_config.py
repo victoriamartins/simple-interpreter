@@ -73,7 +73,8 @@ class Parser:
         return result_term
 
     def rest(self):
-        if self.lookahead.type != TokenType.Invalid:
+        if (self.lookahead.type != TokenType.Invalid and
+                self.lookahead.type != TokenType.Eol):
             op_symbol = self.lookahead.attribute  # it gets the symbol
             self.match(self.lookahead)  # it maches the symbol
             result_expr = self.expr()  # todo to make it return something

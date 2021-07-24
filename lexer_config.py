@@ -55,7 +55,6 @@ class Lexer:
                 if not peek.isalnum():
                     self.position -= 1
                     break
-            self.symbol_table[var] = 0
             return Token(TokenType.Var, var)
         elif peek == 'p':
             command = str()
@@ -68,3 +67,11 @@ class Lexer:
             return Token(TokenType.Print)
         else:
             return Token(TokenType.Invalid)
+
+    def check_tokens(self):
+        while True:
+            a = self.next_token()
+            print(f'{a.type}, {a.attribute}')
+            if a.type == TokenType.Invalid:
+                break
+
