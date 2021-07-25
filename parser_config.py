@@ -5,10 +5,13 @@ class Parser:
     def __init__(self, lexer):
         self.lexer = lexer
         self.lookahead = lexer.next_token()
-        # self.lookahead = Token() TODO: to change it when I'm coding
         self.output = str()
 
-    # ok
+    def prog(self):
+        self.stmt()
+        self.match(self.lookahead)
+        self.lines()
+
     def atr(self):
         ref = self.lookahead.attribute  # it gets the name
         self.match(self.lookahead)  # it matches VAR
@@ -16,7 +19,6 @@ class Parser:
         result_expr = self.expr()
         self.lexer.symbol_table[ref] = result_expr
 
-    # ok
     def stmt(self):
         if self.lookahead.type == TokenType.Var:
             self.atr()
@@ -25,16 +27,17 @@ class Parser:
         else:
             print('Syntax error: Var or print were expected.')
 
-    # ok
     def imp(self):
         self.match(self.lookahead)  # print
         self.match(self.lookahead)  # open
-        value = self.lexer.symbol_table[self.lookahead.attribute]
-        self.match(self.lookahead)  # var
-        self.match(self.lookahead)  # close
-        print(value)
+        if self.lookahead.attribute in self.lexer.symbol_table:
+            value = self.lexer.symbol_table[self.lookahead.attribute]
+            print(value)
+        else:
+            print(f'Symbol {self.lookahead.attribute} is not defined.')
+        self.match(self.lookahead)
+        self.match(self.lookahead)
 
-    # ok
     def lines(self):
         if self.lookahead.type != TokenType.Invalid:
             self.prog()
@@ -46,14 +49,9 @@ class Parser:
         else:
             print("*** Syntax Error! Values do not match. ***")
 
-    def prog(self):
-        self.stmt()
-        self.match(self.lookahead)
-        self.lines()
-
     def expr(self):
-        result_expr = self.fact()  # number
-        op_rest, result_rest = self.rest()  # returns sum sub or nothing
+        result_expr = self.fact()
+        op_rest, result_rest = self.rest()
         if op_rest == '+':
             return result_expr + result_rest
         elif op_rest == '-':
@@ -74,16 +72,20 @@ class Parser:
 
     def rest(self):
         if (self.lookahead.type != TokenType.Invalid and
-                self.lookahead.type != TokenType.Eol):
+                self.lookahead.type != TokenType.Eol and
+                self.lookahead.type != TokenType.Close):
             op_symbol = self.lookahead.attribute  # it gets the symbol
-            self.match(self.lookahead)  # it maches the symbol
-            result_expr = self.expr()  # todo to make it return something
+            self.match(self.lookahead)  # it matches the symbol
+            result_expr = self.expr()
             return op_symbol, result_expr
         return 'invalid', -1
 
     def term(self):
         if self.lookahead.type == TokenType.Open:
-            return self.expr()
+            self.match(self.lookahead)
+            result_expr = self.expr()
+            self.match(self.lookahead)
+            return result_expr
         elif self.lookahead.type == TokenType.Var:
             name = self.lookahead.attribute
             self.match(self.lookahead)
@@ -100,5 +102,5 @@ class Parser:
     def op(self):
         op_symbol = self.lookahead.attribute
         self.match(self.lookahead)
-        result = self.fact()  # todo to make it return something
+        result = self.fact()
         return op_symbol, result
