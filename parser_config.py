@@ -12,12 +12,9 @@ class Parser:
         self.match(self.lookahead)
         self.lines()
 
-    def atr(self):
-        ref = self.lookahead.attribute  # it gets the name
-        self.match(self.lookahead)  # it matches VAR
-        self.match(self.lookahead)  # it matches EQ
-        result_expr = self.expr()
-        self.lexer.symbol_table[ref] = result_expr
+    def lines(self):
+        if self.lookahead.type != TokenType.Invalid:
+            self.prog()
 
     def stmt(self):
         if self.lookahead.type == TokenType.Var:
@@ -30,61 +27,53 @@ class Parser:
     def imp(self):
         self.match(self.lookahead)  # print
         self.match(self.lookahead)  # open
-        if self.lookahead.attribute in self.lexer.symbol_table:
-            value = self.lexer.symbol_table[self.lookahead.attribute]
+        ref = self.lookahead.attribute
+        if ref in self.lexer.symbol_table:
+            value = self.lexer.symbol_table[ref]
             print(value)
         else:
             print(f'Symbol {self.lookahead.attribute} is not defined.')
-        self.match(self.lookahead)
-        self.match(self.lookahead)
+        self.match(self.lookahead)  # var
+        self.match(self.lookahead)  # close
 
-    def lines(self):
-        if self.lookahead.type != TokenType.Invalid:
-            self.prog()
-
-    def match(self, token):
-        if (self.lookahead.type == token.type
-                and self.lookahead.attribute == token.attribute):
-            self.lookahead = self.lexer.next_token()
-        else:
-            print("*** Syntax Error! Values do not match. ***")
+    def atr(self):
+        ref = self.lookahead.attribute  # it gets the name
+        self.match(self.lookahead)  # it matches VAR
+        self.match(self.lookahead)  # it matches EQ
+        result_expr = self.expr()
+        self.lexer.symbol_table[ref] = result_expr
 
     def expr(self):
-        result_expr = self.fact()
-        op_rest, result_rest = self.rest()
-        if op_rest == '+':
-            return result_expr + result_rest
-        elif op_rest == '-':
-            return result_expr - result_rest
+        result_fact = self.fact()
+        if self.lookahead.type == TokenType.Sum:
+            self.match(self.lookahead)  # it matches SUM
+            result_expr = self.expr()
+            return result_fact + result_expr
+        elif self.lookahead.type == TokenType.Sub:
+            self.match(self.lookahead)  # it matches SUB
+            result_expr = self.expr()
+            return result_fact - result_expr
         else:
-            return result_expr
+            return result_fact
 
     def fact(self):
         result_term = self.term()  # number
-        if (self.lookahead.type == TokenType.Mult
-                or self.lookahead.type == TokenType.Div):
-            op_symbol, result_op = self.op()
-            if op_symbol == '*':
-                return result_term * result_op
-            elif op_symbol == '/':
-                return result_term / result_op
-        return result_term
-
-    def rest(self):
-        if (self.lookahead.type != TokenType.Invalid and
-                self.lookahead.type != TokenType.Eol and
-                self.lookahead.type != TokenType.Close):
-            op_symbol = self.lookahead.attribute  # it gets the symbol
-            self.match(self.lookahead)  # it matches the symbol
-            result_expr = self.expr()
-            return op_symbol, result_expr
-        return 'invalid', -1
+        if self.lookahead.type == TokenType.Mult:
+            self.match(self.lookahead)  # it matches MULT
+            result_fact = self.fact()
+            return result_term * result_fact
+        elif self.lookahead.type == TokenType.Div:
+            self.match(self.lookahead)  # it matches DIV
+            result_fact = self.fact()
+            return result_term / result_fact
+        else:
+            return result_term
 
     def term(self):
         if self.lookahead.type == TokenType.Open:
-            self.match(self.lookahead)
-            result_expr = self.expr()
-            self.match(self.lookahead)
+            self.match(self.lookahead)  # it matches OPEN
+            result_expr = self.expr()   # it gets the expression
+            self.match(self.lookahead)  # it matches CLOSE
             return result_expr
         elif self.lookahead.type == TokenType.Var:
             name = self.lookahead.attribute
@@ -99,8 +88,9 @@ class Parser:
             self.match(self.lookahead)
             return value
 
-    def op(self):
-        op_symbol = self.lookahead.attribute
-        self.match(self.lookahead)
-        result = self.fact()
-        return op_symbol, result
+    def match(self, token):
+        if (self.lookahead.type == token.type
+                and self.lookahead.attribute == token.attribute):
+            self.lookahead = self.lexer.next_token()
+        else:
+            print("*** Syntax Error! Values do not match. ***")
